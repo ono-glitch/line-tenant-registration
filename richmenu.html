@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>リッチメニュー画像</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f0f0f0;
+        }
+        
+        #canvas-container {
+            text-align: center;
+        }
+        
+        canvas {
+            border: 1px solid #ccc;
+            display: block;
+            margin: 20px auto;
+        }
+        
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <h1>リッチメニュー画像生成</h1>
+        <canvas id="richMenuCanvas" width="2500" height="843"></canvas>
+        <br>
+        <button onclick="downloadImage()">📥 画像をダウンロード</button>
+        <p style="color: #666;">※ 2500x843pxのPNG画像が生成されます</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('richMenuCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 背景を白に
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 2500, 843);
+        
+        // 3分割の境界線
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = 2;
+        
+        // 1本目の縦線（1/3の位置）
+        ctx.beginPath();
+        ctx.moveTo(833, 0);
+        ctx.lineTo(833, 843);
+        ctx.stroke();
+        
+        // 2本目の縦線（2/3の位置）
+        ctx.beginPath();
+        ctx.moveTo(1667, 0);
+        ctx.lineTo(1667, 843);
+        ctx.stroke();
+        
+        // テキストのスタイル設定
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // ===== ボタン1: 設備故障 =====
+        // アイコン（絵文字風）
+        ctx.font = 'bold 180px Arial';
+        ctx.fillStyle = '#e74c3c';
+        ctx.fillText('🔧', 416, 300);
+        
+        // テキスト
+        ctx.font = 'bold 80px "Hiragino Sans", "Meiryo", sans-serif';
+        ctx.fillStyle = '#333333';
+        ctx.fillText('設備故障', 416, 540);
+        
+        // ===== ボタン2: 解約申請 =====
+        // アイコン
+        ctx.font = 'bold 180px Arial';
+        ctx.fillStyle = '#3498db';
+        ctx.fillText('📋', 1250, 300);
+        
+        // テキスト
+        ctx.font = 'bold 80px "Hiragino Sans", "Meiryo", sans-serif';
+        ctx.fillStyle = '#333333';
+        ctx.fillText('解約申請', 1250, 540);
+        
+        // ===== ボタン3: その他 =====
+        // アイコン
+        ctx.font = 'bold 180px Arial';
+        ctx.fillStyle = '#27ae60';
+        ctx.fillText('💬', 2083, 300);
+        
+        // テキスト
+        ctx.font = 'bold 80px "Hiragino Sans", "Meiryo", sans-serif';
+        ctx.fillStyle = '#333333';
+        ctx.fillText('その他', 2083, 540);
+        
+        function downloadImage() {
+            // Canvasを画像に変換してダウンロード
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'richmenu.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+    </script>
+</body>
+</html>
