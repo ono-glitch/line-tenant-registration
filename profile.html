@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>登録情報の確認・編集</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 12px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 28px;
+        }
+
+        .info-box p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .required {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-left: 4px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-update {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+
+        .btn-update:hover {
+            opacity: 0.9;
+        }
+
+        .btn-update:active {
+            transform: scale(0.98);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+
+        .error-message {
+            display: none;
+            background: #fee;
+            border: 1px solid #fcc;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            color: #c33;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-message" id="error-message"></div>
+        
+        <div id="form-container">
+            <h1>登録情報の確認・編集</h1>
+            <p class="subtitle">現在の登録情報を確認・変更できます</p>
+            
+            <div class="info-box">
+                <p>💡 変更したい項目を編集して「更新する」ボタンを押してください</p>
+            </div>
+            
+            <form id="update-form">
+                <div>
+                    <label>お名前<span class="required">*必須</span></label>
+                    <input type="text" class="form-control" id="name" name="name" placeholder="読み込み中..." required disabled>
+                </div>
+                
+                <div>
+                    <label>物件名<span class="required">*必須</span></label>
+                    <input type="text" class="form-control" id="property" name="property" placeholder="読み込み中..." required disabled>
+                </div>
+                
+                <div>
+                    <label>部屋番号<span class="required">*必須</span></label>
+                    <input type="text" class="form-control" id="room" name="room" placeholder="読み込み中..." required disabled>
+                </div>
+                
+                <div>
+                    <label>電話番号<span class="required">*必須</span></label>
+                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="読み込み中..." required disabled>
+                </div>
+                
+                <div>
+                    <label>メールアドレス<span class="required">*必須</span></label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="読み込み中..." required disabled>
+                </div>
+                
+                <button type="submit" class="btn-update" id="submit-btn" disabled>読み込み中...</button>
+            </form>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 20px; color: #666;">送信中...</p>
+        </div>
+        
+        <div class="success-message" id="success">
+            <div class="success-icon">✓</div>
+            <h2 style="color: #27ae60; margin-bottom: 12px; font-size: 24px; font-weight: bold;">更新完了!</h2>
+            <p style="color: #666; font-size: 16px;">登録情報を更新しました。</p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+    <script>
+        // LIFF IDを設定
+        const liffId = "2008449637-lJdRjNK3";
+        let userId = null;
+        
+        // GASエンドポイント
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwoZnbL2mhxqnKJHvZGviGePFFD823KOLYSImQCPaneH8CY3z_96aGUvVHwCeLR0CznpA/exec";
+        
+        // LIFF初期化
+        $(document).ready(function () {
+            initializeLiff(liffId);
+        });
+        
+        function initializeLiff(liffId) {
+            liff.init({
+                liffId: liffId
+            }).then(() => {
+                if (liff.isLoggedIn()) {
+                    return liff.getProfile();
+                } else {
+                    liff.login();
+                }
+            }).then((profile) => {
+                if (profile) {
+                    userId = profile.userId;
+                    console.log('userId:', userId);
+                    // 登録情報を取得
+                    loadUserInfo(userId);
+                }
+            }).catch((err) => {
+                console.log('LIFF Initialization failed', err);
+                showError('LIFF初期化エラー: ' + err);
+            });
+        }
+        
+        function loadUserInfo(userId) {
+            // GASから登録情報を取得
+            $.ajax({
+                url: GAS_URL + '?action=getUserInfo&userId=' + userId,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    if (data.success && data.user) {
+                        // フォームに値を設定
+                        $('#name').val(data.user.name).prop('disabled', false);
+                        $('#property').val(data.user.property).prop('disabled', false);
+                        $('#room').val(data.user.room).prop('disabled', false);
+                        $('#phone').val(data.user.phone).prop('disabled', false);
+                        $('#email').val(data.user.email).prop('disabled', false);
+                        $('#submit-btn').prop('disabled', false).text('更新する');
+                    } else {
+                        showError('登録情報が見つかりませんでした。先に入居者登録を完了してください。');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error:', error);
+                    showError('登録情報の取得に失敗しました: ' + error);
+                }
+            });
+        }
+        
+        function sendText(text) {
+            liff.sendMessages([{
+                'type': 'text',
+                'text': text
+            }]).then(function () {
+                console.log('Message sent');
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('success').style.display = 'block';
+                
+                // 2秒後にLIFF画面を閉じる
+                setTimeout(function() {
+                    liff.closeWindow();
+                }, 2000);
+            }).catch(function (error) {
+                console.log('Failed to send message', error);
+                showError('送信エラー: ' + error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('form-container').style.display = 'block';
+            });
+        }
+        
+        function showError(message) {
+            $('#error-message').text(message).show();
+        }
+        
+        // フォーム送信処理
+        $(function () {
+            $('#update-form').submit(function (e) {
+                e.preventDefault();
+                
+                const name = $('#name').val().trim();
+                const property = $('#property').val().trim();
+                const room = $('#room').val().trim();
+                const phone = $('#phone').val().trim();
+                const email = $('#email').val().trim();
+                
+                // バリデーション
+                if (!name || !property || !room || !phone || !email) {
+                    showError('全ての項目を入力してください');
+                    return false;
+                }
+                
+                // メールアドレスの簡易バリデーション
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showError('正しいメールアドレスを入力してください');
+                    return false;
+                }
+                
+                // ローディング表示
+                document.getElementById('form-container').style.display = 'none';
+                document.getElementById('loading').style.display = 'block';
+                
+                // LINEメッセージとして送信
+                const msg = `[登録情報更新]\n名前:${name}\n物件:${property}\n部屋:${room}\n電話:${phone}\nメール:${email}`;
+                sendText(msg);
+                
+                return false;
+            });
+        });
+    </script>
+</body>
+</html>
