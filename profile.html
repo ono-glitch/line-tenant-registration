@@ -145,12 +145,88 @@
             color: #c33;
             text-align: center;
         }
+
+        .unregistered-container {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .unregistered-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .btn-register:hover {
+            opacity: 0.9;
+        }
+
+        #register-form-container {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="error-message" id="error-message"></div>
+
+        <!-- 未登録メッセージ -->
+        <div class="unregistered-container" id="unregistered-container">
+            <div class="unregistered-icon">📝</div>
+            <h2 style="color: #333; margin-bottom: 16px;">入居者情報が見つかりません</h2>
+            <p style="color: #666; margin-bottom: 30px;">まだ登録されていません。<br>下のボタンから入居者情報を登録してください。</p>
+            <button class="btn-register" onclick="showRegisterForm()">📝 今すぐ登録する</button>
+        </div>
+
+        <!-- 登録フォーム -->
+        <div id="register-form-container">
+            <h1>📝 入居者情報の登録</h1>
+            <p class="subtitle">契約時の情報をご入力ください</p>
+
+            <form id="register-form">
+                <div>
+                    <label>お名前<span class="required">*必須</span></label>
+                    <input type="text" class="form-control" name="reg_name" placeholder="例：山田 太郎" required>
+                </div>
+
+                <div>
+                    <label>物件名<span class="required">*必須</span></label>
+                    <input type="text" class="form-control" name="reg_property" placeholder="例：〇〇マンション" required>
+                </div>
+
+                <div>
+                    <label>部屋番号<span class="required">*必須</span></label>
+                    <input type="text" class="form-control" name="reg_room" placeholder="例：101" required>
+                </div>
+
+                <div>
+                    <label>電話番号<span class="required">*必須</span></label>
+                    <input type="tel" class="form-control" name="reg_phone" placeholder="例：090-1234-5678" required>
+                </div>
+
+                <div>
+                    <label>メールアドレス<span class="required">*必須</span></label>
+                    <input type="email" class="form-control" name="reg_email" placeholder="例：example@example.com" required>
+                </div>
+
+                <button type="submit" class="btn-update">登録する</button>
+            </form>
+        </div>
         
+        <!-- 編集フォーム（登録済み） -->
         <div id="form-container">
             <h1>登録情報の確認・編集</h1>
             <p class="subtitle">現在の登録情報を確認・変更できます</p>
@@ -196,8 +272,8 @@
         
         <div class="success-message" id="success">
             <div class="success-icon">✓</div>
-            <h2 style="color: #27ae60; margin-bottom: 12px; font-size: 24px; font-weight: bold;">更新完了!</h2>
-            <p style="color: #666; font-size: 16px;">登録情報を更新しました。</p>
+            <h2 style="color: #27ae60; margin-bottom: 12px; font-size: 24px; font-weight: bold;">完了!</h2>
+            <p style="color: #666; font-size: 16px;" id="success-text">処理が完了しました。</p>
         </div>
     </div>
 
@@ -247,15 +323,11 @@
                 dataType: 'json',
                 success: function(data) {
                     if (data.success && data.user) {
-                        // フォームに値を設定
-                        $('#name').val(data.user.name).prop('disabled', false);
-                        $('#property').val(data.user.property).prop('disabled', false);
-                        $('#room').val(data.user.room).prop('disabled', false);
-                        $('#phone').val(data.user.phone).prop('disabled', false);
-                        $('#email').val(data.user.email).prop('disabled', false);
-                        $('#submit-btn').prop('disabled', false).text('更新する');
+                        // 登録済み → 編集フォーム表示
+                        showEditForm(data.user);
                     } else {
-                        showError('登録情報が見つかりませんでした。先に入居者登録を完了してください。');
+                        // 未登録 → 登録案内表示
+                        showUnregisteredMessage();
                     }
                 },
                 error: function(xhr, status, error) {
@@ -264,14 +336,35 @@
                 }
             });
         }
+
+        function showEditForm(user) {
+            // フォームに値を設定
+            $('#name').val(user.name).prop('disabled', false);
+            $('#property').val(user.property).prop('disabled', false);
+            $('#room').val(user.room).prop('disabled', false);
+            $('#phone').val(user.phone).prop('disabled', false);
+            $('#email').val(user.email).prop('disabled', false);
+            $('#submit-btn').prop('disabled', false).text('更新する');
+            $('#form-container').show();
+        }
+
+        function showUnregisteredMessage() {
+            $('#unregistered-container').show();
+        }
+
+        function showRegisterForm() {
+            $('#unregistered-container').hide();
+            $('#register-form-container').show();
+        }
         
-        function sendText(text) {
+        function sendText(text, successText) {
             liff.sendMessages([{
                 'type': 'text',
                 'text': text
             }]).then(function () {
                 console.log('Message sent');
                 document.getElementById('loading').style.display = 'none';
+                document.getElementById('success-text').textContent = successText;
                 document.getElementById('success').style.display = 'block';
                 
                 // 2秒後にLIFF画面を閉じる
@@ -283,6 +376,7 @@
                 showError('送信エラー: ' + error);
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('form-container').style.display = 'block';
+                document.getElementById('register-form-container').style.display = 'block';
             });
         }
         
@@ -290,7 +384,43 @@
             $('#error-message').text(message).show();
         }
         
-        // フォーム送信処理
+        // 登録フォーム送信処理
+        $(function () {
+            $('#register-form').submit(function (e) {
+                e.preventDefault();
+                
+                const name = $('input[name="reg_name"]').val().trim();
+                const property = $('input[name="reg_property"]').val().trim();
+                const room = $('input[name="reg_room"]').val().trim();
+                const phone = $('input[name="reg_phone"]').val().trim();
+                const email = $('input[name="reg_email"]').val().trim();
+                
+                // バリデーション
+                if (!name || !property || !room || !phone || !email) {
+                    showError('全ての項目を入力してください');
+                    return false;
+                }
+                
+                // メールアドレスの簡易バリデーション
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showError('正しいメールアドレスを入力してください');
+                    return false;
+                }
+                
+                // ローディング表示
+                document.getElementById('register-form-container').style.display = 'none';
+                document.getElementById('loading').style.display = 'block';
+                
+                // LINEメッセージとして送信
+                const msg = `[入居者登録]\n氏名:${name}\n物件:${property}\n部屋番号:${room}\n電話:${phone}\nメール:${email}`;
+                sendText(msg, '登録を受け付けました！');
+                
+                return false;
+            });
+        });
+
+        // 更新フォーム送信処理
         $(function () {
             $('#update-form').submit(function (e) {
                 e.preventDefault();
@@ -320,7 +450,7 @@
                 
                 // LINEメッセージとして送信
                 const msg = `[登録情報更新]\n名前:${name}\n物件:${property}\n部屋:${room}\n電話:${phone}\nメール:${email}`;
-                sendText(msg);
+                sendText(msg, '登録情報を更新しました。');
                 
                 return false;
             });
