@@ -181,11 +181,39 @@
         #form-container {
             display: none;
         }
+
+        .initial-loading {
+            display: block;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .initial-loading .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        .initial-loading-text {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="error-message" id="error-message"></div>
+
+        <!-- 初期ローディング -->
+        <div class="initial-loading" id="initial-loading">
+            <div class="spinner"></div>
+            <p class="initial-loading-text">登録情報を読み込んでいます。<br>お待ちください。</p>
+        </div>
 
         <!-- 未登録メッセージ -->
         <div class="unregistered-container" id="unregistered-container">
@@ -336,12 +364,16 @@
                 },
                 error: function(xhr, status, error) {
                     console.log('Error:', error);
+                    $('#initial-loading').hide();
                     showError('登録情報の取得に失敗しました: ' + error);
                 }
             });
         }
 
         function showEditForm(user) {
+            // 初期ローディングを非表示
+            $('#initial-loading').hide();
+            
             // フォームに値を設定
             $('#name').val(user.name).prop('disabled', false);
             $('#property').val(user.property).prop('disabled', false);
@@ -353,6 +385,8 @@
         }
 
         function showUnregisteredMessage() {
+            // 初期ローディングを非表示
+            $('#initial-loading').hide();
             $('#unregistered-container').show();
         }
 
