@@ -275,6 +275,9 @@
         // LIFF IDを設定
         const liffId = "2008449637-AbRxlpdK";
         
+        // GAS Web App URL（後で変更してください）
+        const gasApiUrl = "https://script.google.com/macros/s/AKfycbwoZnbL2mhxqnKJHvZGviGePFFD823KOLYSImQCPaneH8CY3z_96aGUvVHwCeLR0CznpA/exec";
+        
         // LIFF初期化
         $(document).ready(function () {
             initializeLiff(liffId);
@@ -285,10 +288,91 @@
                 liffId: liffId
             }).then(() => {
                 console.log('LIFF initialized');
+                checkUserRegistration();
             }).catch((err) => {
                 console.log('LIFF Initialization failed', err);
                 showError('LIFF初期化エラー: ' + err);
             });
+        }
+        
+        // ユーザー登録チェック
+        function checkUserRegistration() {
+            liff.getProfile().then(profile => {
+                const userId = profile.userId;
+                
+                // GAS APIに登録チェックリクエスト
+                $.ajax({
+                    url: gasApiUrl,
+                    type: 'GET',
+                    data: {
+                        action: 'getUserInfo',
+                        userId: userId
+                    },
+                    success: function(response) {
+                        if (!response.success) {
+                            // 未登録
+                            showUnregisteredMessage();
+                        } else {
+                            // 登録済み → 解約申請済みチェック
+                            checkCancellationStatus(userId);
+                        }
+                    },
+                    error: function(error) {
+                        console.error('登録チェックエラー:', error);
+                        // エラー時はフォームを表示（API障害時のため）
+                    }
+                });
+            }).catch(err => {
+                console.error('プロフィール取得エラー:', err);
+            });
+        }
+        
+        // 解約申請済みチェック（code.gsに追加のAPI必要）
+        function checkCancellationStatus(userId) {
+            $.ajax({
+                url: gasApiUrl,
+                type: 'GET',
+                data: {
+                    action: 'checkCancellation',
+                    userId: userId
+                },
+                success: function(response) {
+                    if (response.hasCancellation) {
+                        // 既に解約申請済み
+                        showAlreadyCancelledMessage();
+                    }
+                },
+                error: function(error) {
+                    console.error('解約申請チェックエラー:', error);
+                    // エラー時はフォームを表示
+                }
+            });
+        }
+        
+        // 未登録メッセージを表示
+        function showUnregisteredMessage() {
+            document.getElementById('form-container').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-message').innerHTML = 
+                '<h3 style="color: #e74c3c; margin-bottom: 16px;">⚠️ 入居者情報未登録</h3>' +
+                '<p style="margin-bottom: 20px;">解約申請をご利用いただくには、まず入居者情報の登録が必要です。</p>' +
+                '<button onclick="closeWindow()" style="width: 100%; padding: 16px; background: #3498db; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">閉じて登録する</button>';
+            document.getElementById('error-message').style.display = 'block';
+        }
+        
+        // 既に解約申請済みメッセージを表示
+        function showAlreadyCancelledMessage() {
+            document.getElementById('form-container').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-message').innerHTML = 
+                '<h3 style="color: #f39c12; margin-bottom: 16px;">📋 解約申請済み</h3>' +
+                '<p style="margin-bottom: 20px;">すでに解約申請を受け付けております。<br><br>担当者からのご連絡をお待ちください。</p>' +
+                '<button onclick="closeWindow()" style="width: 100%; padding: 16px; background: #3498db; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">閉じる</button>';
+            document.getElementById('error-message').style.display = 'block';
+        }
+        
+        function closeWindow() {
+            liff.closeWindow();
         }
         
         function sendText(text) {
