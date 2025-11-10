@@ -361,7 +361,7 @@
             $('#register-form-container').show();
         }
         
-        function sendText(text, successText) {
+        function sendText(text, successText, formId) {
             liff.sendMessages([{
                 'type': 'text',
                 'text': text
@@ -379,8 +379,10 @@
                 console.log('Failed to send message', error);
                 showError('送信エラー: ' + error);
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('form-container').style.display = 'block';
-                document.getElementById('register-form-container').style.display = 'block';
+                // エラー時は元々表示していたフォームのみ再表示
+                if (formId) {
+                    document.getElementById(formId).style.display = 'block';
+                }
             });
         }
         
@@ -418,7 +420,7 @@
                 
                 // LINEメッセージとして送信
                 const msg = `[入居者登録]\n氏名:${name}\n物件:${property}\n部屋番号:${room}\n電話:${phone}\nメール:${email}`;
-                sendText(msg, '登録を受け付けました！');
+                sendText(msg, '登録を受け付けました！', 'register-form-container');
                 
                 return false;
             });
@@ -454,7 +456,7 @@
                 
                 // LINEメッセージとして送信
                 const msg = `[登録情報更新]\n名前:${name}\n物件:${property}\n部屋:${room}\n電話:${phone}\nメール:${email}`;
-                sendText(msg, '登録情報を更新しました。');
+                sendText(msg, '登録情報を更新しました。', 'form-container');
                 
                 return false;
             });
